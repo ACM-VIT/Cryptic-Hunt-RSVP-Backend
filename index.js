@@ -29,42 +29,42 @@ app.use(bodyParser.json());
 
 /** route to handle email and captcha data from user */
 app.post('/rsvp', async (req, res) => {
-  // if (!req.body.captcha) {
-  //   logger.error(`Captcha wasn't supplied in body`);
-  //   return res.json({ success: false, msg: 'Captcha is not checked.' });
-  // }
-
-  // const verifyUrl = `https://www.google.com/recaptcha/api/siteverify?secret=${secretKey}&response=${req.body.captcha}`;
-  // try {
-  //   const request = await axios.get(verifyUrl);
-  //   const { data } = request;
-
-  //   if (!data.success || data.success === undefined) {
-  //     logger.warn(`Captcha verification failed: ${JSON.stringify(data)}`);
-  //     return res.json({ success: false, msg: 'Captcha verification failed.' });
-  //   }
-
-  //   if (data.score < 0.5) {
-  //     return res.json({
-  //       success: false,
-  //       msg: 'You might be a bot, sorry!',
-  //     });
-  //   }
-
-  const email = req.body.email.toString();
-  logger.info(`Adding email to db, Email: ${email}`);
-
-  try {
-    await CrypticHunt.create({ email });
-  } catch (err) {
-    logger.error(`Error adding email to db: ${err}`);
-    return res.json({ success: false, msg: 'Email already registered.' });
+  if (!req.body.captcha) {
+    logger.error(`Captcha wasn't supplied in body`);
+    return res.json({ success: false, msg: 'Captcha is not checked.' });
   }
 
-  return res.json({ success: true, msg: 'Email registered successfully.' });
-  // } catch (e) {
-  //   logger.error(`Captcha verification failed: ${e}`);
-  // }
+  const verifyUrl = `https://www.google.com/recaptcha/api/siteverify?secret=${secretKey}&response=${req.body.captcha}`;
+  try {
+    const request = await axios.get(verifyUrl);
+    const { data } = request;
+
+    if (!data.success || data.success === undefined) {
+      logger.warn(`Captcha verification failed: ${JSON.stringify(data)}`);
+      return res.json({ success: false, msg: 'Captcha verification failed.' });
+    }
+
+    if (data.score < 0.5) {
+      return res.json({
+        success: false,
+        msg: 'You might be a bot, sorry!',
+      });
+    }
+
+    const email = req.body.email.toString();
+    logger.info(`Adding email to db, Email: ${email}`);
+
+    try {
+      await CrypticHunt.create({ email });
+    } catch (err) {
+      logger.error(`Error adding email to db: ${err}`);
+      return res.json({ success: false, msg: 'Email already registered.' });
+    }
+
+    return res.json({ success: true, msg: 'Email registered successfully.' });
+  } catch (e) {
+    logger.error(`Captcha verification failed: ${e}`);
+  }
 });
 
 app.listen(process.env.PORT || 3000, () => {
